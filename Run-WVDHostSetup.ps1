@@ -18,34 +18,38 @@ function Get-Option {
     Write-Host "4 - Uninstall WVD Infra Agent and Boot Loader"
     Write-Host "5 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
-    return $o.ToString()
+    return $o
 }
+function Invoke-Option {
+    param (
+        [parameter (Mandatory=$true)]
+        [int]$userSelection
+    )
 
-function Run-Option($option) {
-    if ($option = "1") {
+    if ($userSelection = 1) {
         New-Item -Path $WVDSetupBootPath -ItemType Directory -Force
         New-Item -Path $WVDSetupInfraPath -ItemType Directory -Force
     
         #Download WVD Agents From Internet 
-        Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" 
+        Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" -UseBasicParsing
         Write-Host "Downloaded RDAgentBootLoader"
-        Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
+        Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
         Write-Host "Downloaded RDInfra"
     }
-    if ($option = "2") {
+    if ($userSelection = 2) {
         New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
     
-        Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip"
+        Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
         Write-Host "Downloaded FSLogix"
     
         Write-Host "Expanding and cleaning up Fslogix.zip"
         Expand-Archive "$WVDSetupFslgxPath\FSLogix_Apps.zip" -DestinationPath "$WVDSetupFslgxPath" -ErrorAction SilentlyContinue
         Remove-Item "$WVDSetupFslgxPath\FSLogix_Apps.zip"
     }
-    if ($option = "3") {
+    if ($userSelection = 3) {
         
     }
-    if ($option = "4") {
+    if ($userSelection = 4) {
         Write-Host "Uninstalling any previous versions of the WVD RDInfra Agent on VM"
         $RDInfraApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Remote Desktop Services Infrastructure Agent" }
         foreach ($app in $RDInfraApps) {
@@ -59,7 +63,7 @@ function Run-Option($option) {
             $app.Uninstall()
         }
     }
-    if ($option = "5") {
+    if ($userSelection = 5) {
         break
     }
     else {
@@ -68,7 +72,6 @@ function Run-Option($option) {
 }
 
 
-$option = Get-Option
-Run-Option -option $option
-
+#$option = Get-Option
+Invoke-Option -userSelection (Get-Option)
 
