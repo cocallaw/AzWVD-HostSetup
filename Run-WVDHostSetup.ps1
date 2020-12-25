@@ -35,6 +35,8 @@ function Invoke-Option {
         Write-Host "Downloaded RDAgentBootLoader"
         Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
         Write-Host "Downloaded RDInfra"
+
+        Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 2) {
         New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
@@ -45,9 +47,19 @@ function Invoke-Option {
         Write-Host "Expanding and cleaning up Fslogix.zip"
         Expand-Archive "$WVDSetupFslgxPath\FSLogix_Apps.zip" -DestinationPath "$WVDSetupFslgxPath" -ErrorAction SilentlyContinue
         Remove-Item "$WVDSetupFslgxPath\FSLogix_Apps.zip"
+
+        Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 3) {
-        
+        $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
+        $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
+
+        Write-Host "Starting install of $AgentBootServiceInstaller"
+        $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive" -Wait -Passthru
+        $sts = $bootloader_deploy_status.ExitCode
+        Write-Host "Installing RDAgentBootLoader on VM Complete. Exit code=$sts"
+
+        Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 4) {
         Write-Host "Uninstalling any previous versions of the WVD RDInfra Agent on VM"
@@ -62,12 +74,15 @@ function Invoke-Option {
             Write-Host "Uninstalling RDAgentBootLoader $app.Version"
             $app.Uninstall()
         }
+
+        Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 5) {
         break
     }
     else {
         Write-Host "You have selected an invalid option please select again."
+        Invoke-Option -userSelection (Get-Option)
     }
 }
 
