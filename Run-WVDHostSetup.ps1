@@ -16,7 +16,8 @@ function Get-Option {
     Write-Host "2 - Download FSLogix"    
     Write-Host "3 - Install WVD Infra Agent and Boot Loader"
     Write-Host "4 - Uninstall WVD Infra Agent and Boot Loader"
-    Write-Host "5 - Exit"
+    Write-Host "5 - Join Machine to AD Domain"
+    Write-Host "6 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
     return $o
 }
@@ -93,6 +94,22 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 5) {
+        Write-host "Actions will be perfromed on this computer:" $env:COMPUTERNAME 
+        Write-host "Joining the computer to the domain will result in a restart" -ForegroundColor Yellow -BackgroundColor Black
+        $userDomain = Read-Host -Prompt 'What AD Domain do you want to join this computer to?'
+        Write-Host "This process will join" $env:COMPUTERNAME "to the AD Domain" $userDomain
+        $userConfirm = Read-Host -Prompt 'Is that correct? (y/n)' -ForegroundColor Yellow -BackgroundColor Black
+        if (($userConfirm.ToLower()).Trim() -eq "n") {
+            Write-Host "Canceling joing to the domain"
+            Invoke-Option -userSelection (Get-Option)
+        }
+        else {
+            Write-Host "Starting to domain join..."
+            Add-Computer –domainname $userDomain.Trim() -restart
+        }
+    }
+    elseif ($userSelection -eq 6) {
+        #Exit
         break
     }
     else {
