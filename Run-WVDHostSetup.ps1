@@ -19,7 +19,7 @@ function Get-Option {
     Write-Host "5 - Join Machine to AD Domain"
     Write-Host "6 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
-    return $o
+    return $o.ToString()
 }
 function Get-WVDAgentsFromWeb {
     New-Item -Path $WVDSetupBootPath -ItemType Directory -Force
@@ -35,17 +35,17 @@ function Invoke-Option {
     param (
         [parameter (Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [ValidateLength(1,1)]
-        [ValidateRange(1,6)]
+        [ValidateLength(1, 1)]
+        [ValidateRange(1, 6)]
         [Int]$userSelection
     )
 
-    if ($userSelection -eq 1) {
+    if ($userSelection -eq "1") {
 
         Get-WVDAgentsFromWeb
         Invoke-Option -userSelection (Get-Option)
     }
-    elseif ($userSelection -eq 2) {
+    elseif ($userSelection -eq "2") {
         New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
     
         Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
@@ -57,7 +57,7 @@ function Invoke-Option {
 
         Invoke-Option -userSelection (Get-Option)
     }
-    elseif ($userSelection -eq 3) {
+    elseif ($userSelection -eq "3") {
         #test path for install files
         Write-Host "Checking if WVD Agents are located at C:\WVDSetup\"
         $tpBoot = Test-Path -Path "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
@@ -72,7 +72,7 @@ function Invoke-Option {
 
         Write-Host "To perform the install a access key from the WVD host pool is needed"
         $wvdToken = Read-Host -Prompt 'Please provide the WVD access key you would like to use'
-        Write-host "Install will use access key starting with" $wvdToken.Substring(0,5) "and ending with" $wvdToken.Substring($wvdToken.Length-5)
+        Write-host "Install will use access key starting with" $wvdToken.Substring(0, 5) "and ending with" $wvdToken.Substring($wvdToken.Length - 5)
 
         $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
         $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
@@ -90,7 +90,7 @@ function Invoke-Option {
 
         Invoke-Option -userSelection (Get-Option)
     }
-    elseif ($userSelection -eq 4) {
+    elseif ($userSelection -eq "4") {
         Write-Host "Uninstalling any previous versions of the WVD RDInfra Agent on VM"
         $RDInfraApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Remote Desktop Services Infrastructure Agent" }
         foreach ($app in $RDInfraApps) {
@@ -106,7 +106,7 @@ function Invoke-Option {
 
         Invoke-Option -userSelection (Get-Option)
     }
-    elseif ($userSelection -eq 5) {
+    elseif ($userSelection -eq "5") {
         Write-host "Actions will be perfromed on this computer:" $env:COMPUTERNAME 
         Write-host "Joining the computer to the domain will result in a restart" -ForegroundColor Yellow -BackgroundColor Black
         $userDomain = Read-Host -Prompt 'What AD Domain do you want to join this computer to?'
@@ -121,7 +121,7 @@ function Invoke-Option {
             Add-Computer –domainname $userDomain.Trim() -restart
         }
     }
-    elseif ($userSelection -eq 6) {
+    elseif ($userSelection -eq "6") {
         #Exit
         break
     }
