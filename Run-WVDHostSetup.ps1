@@ -1,15 +1,13 @@
-#Common Variables
+#region variables
 $bootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
 $infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
 $fslgxURI = "https://aka.ms/fslogix_download"
 $WVDSetupBootPath = "C:\WVDSetup\Boot"
 $WVDSetupInfraPath = "C:\WVDSetup\Infra"
 $WVDSetupFslgxPath = "C:\WVDSetup\fslogix"
+#endregion vatiables
 
-#User Selects Option 
-#Should convert to function for easy refrence, return number choosen
-Write-Host "Welcome to the WVD Setup Script"
-
+#region functions
 function Get-Option {
     Write-Host "What would you like to do?"
     Write-Host "1 - Download WVD Agents"
@@ -40,30 +38,27 @@ function Invoke-Option {
     )
 
     if ($userSelection -eq "1") {
-
+        #1 - Download WVD Agents
         Get-WVDAgentsFromWeb
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "2") {
+        #2 - Download FSLogix
         New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
-    
         Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
         Write-Host "Downloaded FSLogix"
-    
         Write-Host "Expanding and cleaning up Fslogix.zip"
         Expand-Archive "$WVDSetupFslgxPath\FSLogix_Apps.zip" -DestinationPath "$WVDSetupFslgxPath" -ErrorAction SilentlyContinue
         Remove-Item "$WVDSetupFslgxPath\FSLogix_Apps.zip"
-
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "3") {
-        #test path for install files
+        #3 - Install WVD Infra Agent and Boot Loader
         Write-Host "Checking if WVD Agents are located at C:\WVDSetup\"
         $tpBoot = Test-Path -Path "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
         $tpInfra = Test-Path -Path "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
-
         if (!$tpBoot -or !$tpInfra) {
-            #if they do not exist download
+            #If WVD agents not found download current versions
             Write-Host "WVD Agents were not found" -ForegroundColor Yellow -BackgroundColor Black
             Write-Host "Downloading most recent WVD Agents to C:\WVDSetup\"
             Get-WVDAgentsFromWeb
@@ -75,12 +70,12 @@ function Invoke-Option {
 
         $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
         $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
-
+        #WVD Boot Loader Install
         Write-Host "Starting install of $AgentBootServiceInstaller"
         $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive" -Wait -Passthru
         $sts = $bootloader_deploy_status.ExitCode
         Write-Host "Installing WVD Boot Loader complete. Exit code=$sts"
-
+        #WVD Infra Agent Install
         Write-Host "Starting install of $AgentInstaller"
         $RegistrationToken = $wvdToken.Trim()
         $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken" -Wait -Passthru
@@ -90,6 +85,7 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "4") {
+        #4 - Uninstall WVD Infra Agent and Boot Loader
         Write-Host "Uninstalling any previous versions of the WVD RDInfra Agent on VM"
         $RDInfraApps = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Remote Desktop Services Infrastructure Agent" }
         foreach ($app in $RDInfraApps) {
@@ -106,6 +102,7 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "5") {
+        #5 - Join Machine to AD Domain
         Write-host "Actions will be perfromed on this computer:" $env:COMPUTERNAME 
         Write-host "Joining the computer to the domain will result in a restart" -ForegroundColor Yellow -BackgroundColor Black
         $userDomain = Read-Host -Prompt 'What AD Domain do you want to join this computer to?'
@@ -121,7 +118,7 @@ function Invoke-Option {
         }
     }
     elseif ($userSelection -eq "6") {
-        #Exit
+        #6 -Exit
         break
     }
     else {
@@ -129,7 +126,10 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
 }
+#endregion functions
 
+#region main
+Write-Host "Welcome to the WVD Setup Script"
 try {
     Invoke-Option -userSelection (Get-Option)
 }
@@ -137,5 +137,4 @@ catch {
     Write-Host "Something went wrong" -ForegroundColor Yellow -BackgroundColor Black
     Invoke-Option -userSelection (Get-Option)
 }
-
-
+#endregion main
