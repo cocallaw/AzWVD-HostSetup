@@ -34,6 +34,9 @@ function Get-WVDAgentsFromWeb {
 function Invoke-Option {
     param (
         [parameter (Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateLength(1,1)]
+        [ValidateRange(1,6)]
         [Int]$userSelection
     )
 
@@ -128,7 +131,12 @@ function Invoke-Option {
     }
 }
 
+try {
+    Invoke-Option -userSelection (Get-Option)
+}
+catch {
+    Write-Host "Something went wrong"
+    Invoke-Option -userSelection (Get-Option)
+}
 
-#$option = Get-Option
-Invoke-Option -userSelection (Get-Option)
 
