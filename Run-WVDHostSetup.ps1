@@ -24,9 +24,11 @@ function Get-WVDAgentsFromWeb {
     New-Item -Path $WVDSetupInfraPath -ItemType Directory -Force
 
     #Download WVD Agents From Internet 
-    Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" -UseBasicParsing
+    #Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" -UseBasicParsing
+    Start-BitsTransfer -Source $BootURI -Destination "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
     Write-Host "Downloaded RDAgentBootLoader"
-    Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
+    #Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
+    Start-BitsTransfer -Source $infraURI -Destination "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
     Write-Host "Downloaded RDInfra"
 }
 function Invoke-Option {
@@ -45,7 +47,8 @@ function Invoke-Option {
     elseif ($userSelection -eq "2") {
         #2 - Download FSLogix
         New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
-        Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
+        #Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
+        Start-BitsTransfer -Source $fslgxURI -Destination "$WVDSetupFslgxPath\FSLogix_Apps.zip"
         Write-Host "Downloaded FSLogix"
         Write-Host "Expanding and cleaning up Fslogix.zip"
         Expand-Archive "$WVDSetupFslgxPath\FSLogix_Apps.zip" -DestinationPath "$WVDSetupFslgxPath" -ErrorAction SilentlyContinue
