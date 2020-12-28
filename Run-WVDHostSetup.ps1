@@ -36,8 +36,7 @@ function Invoke-Option {
         [parameter (Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [ValidateLength(1, 1)]
-        [ValidateRange(1, 6)]
-        [Int]$userSelection
+        [string]$userSelection
     )
 
     if ($userSelection -eq "1") {
