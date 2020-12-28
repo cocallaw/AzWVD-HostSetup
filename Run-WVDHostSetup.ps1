@@ -19,7 +19,7 @@ function Get-Option {
     Write-Host "5 - Join Machine to AD Domain"
     Write-Host "6 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
-    return $o.ToString()
+    return ($o.ToString()).Trim()
 }
 function Get-WVDAgentsFromWeb {
     New-Item -Path $WVDSetupBootPath -ItemType Directory -Force
@@ -125,7 +125,7 @@ function Invoke-Option {
         break
     }
     else {
-        Write-Host "You have selected an invalid option please select again."
+        Write-Host "You have selected an invalid option please select again." -ForegroundColor Red -BackgroundColor Black
         Invoke-Option -userSelection (Get-Option)
     }
 }
@@ -134,7 +134,7 @@ try {
     Invoke-Option -userSelection (Get-Option)
 }
 catch {
-    Write-Host "Something went wrong"
+    Write-Host "Something went wrong" -ForegroundColor Yellow -BackgroundColor Black
     Invoke-Option -userSelection (Get-Option)
 }
 
