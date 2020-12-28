@@ -55,7 +55,6 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 3) {
-
         #test path for install files
         Write-Host "Checking if WVD Agents are located at C:\WVDSetup\"
         $tpBoot = Test-Path -Path "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
@@ -63,17 +62,28 @@ function Invoke-Option {
 
         if (!$tpBoot -or !$tpInfra) {
             #if they do not exist download
-            Write-Host "Downloading WVD Agents to C:\WVDSetup\"
+            Write-Host "WVD Agents were not found" -ForegroundColor Yellow -BackgroundColor Black
+            Write-Host "Downloading most recent WVD Agents to C:\WVDSetup\"
             Get-WVDAgentsFromWeb
         }
-       
+
+        Write-Host "To perform the install a access key from the WVD host pool is needed"
+        $wvdToken = Read-Host -Prompt 'Please provide the WVD access key you would like to use'
+        Write-host "Install will use access key starting with" $wvdToken.Substring(0,5) "and ending with" $wvdToken.Substring($wvdToken.Length-5)
+
         $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
         $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
 
         Write-Host "Starting install of $AgentBootServiceInstaller"
         $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive" -Wait -Passthru
         $sts = $bootloader_deploy_status.ExitCode
-        Write-Host "Installing RDAgentBootLoader on VM Complete. Exit code=$sts"
+        Write-Host "Installing WVD Boot Loader complete. Exit code=$sts"
+
+        Write-Host "Starting install of $AgentInstaller"
+        $RegistrationToken = $wvdToken.Trim()
+        $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken" -Wait -Passthru
+        $sts = $agent_deploy_status.ExitCode
+        Write-Host "Installation of WVD Infra Agent on VM Complete. Exit code=$sts"
 
         Invoke-Option -userSelection (Get-Option)
     }
