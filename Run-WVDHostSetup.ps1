@@ -20,22 +20,25 @@ function Get-Option {
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
     return $o
 }
+function Get-WVDAgentsFromWeb {
+    New-Item -Path $WVDSetupBootPath -ItemType Directory -Force
+    New-Item -Path $WVDSetupInfraPath -ItemType Directory -Force
+
+    #Download WVD Agents From Internet 
+    Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" -UseBasicParsing
+    Write-Host "Downloaded RDAgentBootLoader"
+    Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
+    Write-Host "Downloaded RDInfra"
+}
 function Invoke-Option {
     param (
-        [parameter (Mandatory=$true)]
+        [parameter (Mandatory = $true)]
         [Int]$userSelection
     )
 
     if ($userSelection -eq 1) {
-        New-Item -Path $WVDSetupBootPath -ItemType Directory -Force
-        New-Item -Path $WVDSetupInfraPath -ItemType Directory -Force
-    
-        #Download WVD Agents From Internet 
-        Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" -UseBasicParsing
-        Write-Host "Downloaded RDAgentBootLoader"
-        Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
-        Write-Host "Downloaded RDInfra"
 
+        Get-WVDAgentsFromWeb
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 2) {
@@ -51,6 +54,18 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq 3) {
+
+        #test path for install files
+        Write-Host "Checking if WVD Agents are located at C:\WVDSetup\"
+        $tpBoot = Test-Path -Path "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
+        $tpInfra = Test-Path -Path "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
+
+        if (!$tpBoot -or !$tpInfra) {
+            #if they do not exist download
+            Write-Host "Downloading WVD Agents to C:\WVDSetup\"
+            Get-WVDAgentsFromWeb
+        }
+       
         $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
         $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
 
