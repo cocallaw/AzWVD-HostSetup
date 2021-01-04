@@ -6,6 +6,8 @@ To run this PowerShell Script on your WVD Host VM you can run the command below 
 
 The WVD Host Multitool Script provides the ability to perform basic WVD Host configuration operation to simplify setup, testing and troubleshooting with WVD Host VMs. 
 
+![PowerShell Screenshot](/images/wvdhostpsscreenshot01.png)
+
 ### Currently the WVD Host Multitool provides the option to perform the following tasks as of January 4, 2020
 
 - Download WVD Agents
