@@ -14,8 +14,8 @@ function Get-Option {
     Write-Host "2 - Download FSLogix"    
     Write-Host "3 - Install WVD Infra Agent and Boot Loader"
     Write-Host "4 - Uninstall WVD Infra Agent and Boot Loader"
-    Write-Host "5 - Join Machine to AD Domain"
-    Write-Host "6 - Exit"
+    Write-Host "6 - Join VM to Windows AD Domain"
+    Write-Host "5 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
     return ($o.ToString()).Trim()
 }
@@ -67,9 +67,9 @@ function Invoke-Option {
             Get-WVDAgentsFromWeb
         }
 
-        Write-Host "To perform the install a access key from the WVD host pool is needed"
-        $wvdToken = Read-Host -Prompt 'Please provide the WVD access key you would like to use'
-        Write-host "Install will use access key starting with" $wvdToken.Substring(0, 5) "and ending with" $wvdToken.Substring($wvdToken.Length - 5)
+        Write-Host "To perform the install a registration key from the WVD host pool is needed"
+        $wvdToken = Read-Host -Prompt 'Please provide the WVD registration key you would like to use'
+        Write-host "Install will use registration  key starting with" $wvdToken.Substring(0, 5) "and ending with" $wvdToken.Substring($wvdToken.Length - 5)
 
         $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
         $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
@@ -105,19 +105,56 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "5") {
-        #5 - Join Machine to AD Domain
-        Write-host "Actions will be perfromed on this computer:" $env:COMPUTERNAME 
-        Write-host "Joining the computer to the domain will result in a restart" -ForegroundColor Yellow -BackgroundColor Black
-        $userDomain = Read-Host -Prompt 'What AD Domain do you want to join this computer to?'
-        Write-Host "This process will join" $env:COMPUTERNAME "to the AD Domain" $userDomain
-        $userConfirm = Read-Host -Prompt 'Is that correct? (y/n)' -ForegroundColor Yellow -BackgroundColor Black
-        if (($userConfirm.ToLower()).Trim() -eq "n") {
-            Write-Host "Canceling joing to the domain"
-            Invoke-Option -userSelection (Get-Option)
+        #5 - Join VM to Windows AD Domain
+        try {
+            $DomainName = Read-Host -Prompt 'Windows AD Domain to Join'
+            $Creds = Get-Credential -Message "Credentials To Join VM to $DomainName"
+            $OUyn = Read-Host -Prompt "Do you want to specify an OUPath to place the computer object in AD? (y/n)"
+            if (($OUyn.Trim()).ToLower() -eq "y") {
+                Write-Host "Please provide an OUPath in the format - OU=testOU,DC=domain,DC=Domain,DC=com"
+                $OUPath = Read-Host -Prompt "OUPath"
+                Write-Host "This process will join" $env:COMPUTERNAME "to the Windows AD Domain" $DomainName
+                Write-Host "The OUPath that will be used is" $OUPath
+                Write-host "Joining the computer to the domain will require a restart" -ForegroundColor Yellow -BackgroundColor Black
+                $userConfirm = Read-Host -Prompt 'Is the above information correct? (y/n)' -ForegroundColor Yellow -BackgroundColor Black
+                if (($userConfirm.ToLower()).Trim() -eq "n") {
+                    Write-Host "Canceling joining to the domain"
+                    Invoke-Option -userSelection (Get-Option)
+                }
+                elseif (($userConfirm.ToLower()).Trim() -eq "y") {
+                    Write-Host "Starting to domain join..."
+                    Add-Computer -DomainName $DomainName.Trim() -Credential $Creds -OUPath $OUPath.Trim() -Force
+                } 
+                else {
+                    Write-Host "Invalid input canceling joining the domain"
+                    Invoke-Option -userSelection (Get-Option)
+                }
+            }
+            elseif (($OUyn.Trim()).ToLower() -eq "n") {
+                Write-Host "This process will join" $env:COMPUTERNAME "to the Windows AD Domain" $DomainName
+                Write-host "Joining the computer to the domain will require a restart" -ForegroundColor Yellow -BackgroundColor Black
+                $userConfirm = Read-Host -Prompt 'Is the above information correct? (y/n)' -ForegroundColor Yellow -BackgroundColor Black
+                if (($userConfirm.ToLower()).Trim() -eq "n") {
+                    Write-Host "Canceling joining to the domain"
+                    Invoke-Option -userSelection (Get-Option)
+                }
+                elseif (($userConfirm.ToLower()).Trim() -eq "y") {
+                    Write-Host "Starting to domain join..."
+                    Add-Computer -DomainName $DomainName -Credential $Creds -Force
+                } 
+                else {
+                    Write-Host "Invalid input canceling joining the domain"
+                    Invoke-Option -userSelection (Get-Option)
+                }              
+            }
+            else {
+                Write-Host "Invalid selection" -ForegroundColor Yellow -BackgroundColor Black
+                Invoke-Option -userSelection (Get-Option)
+            }           
         }
-        else {
-            Write-Host "Starting to domain join..."
-            Add-Computer –domainname $userDomain.Trim() -restart
+        catch {
+            $error[0] | format-list -force  #print more detail reason for failure   
+            Invoke-Option -userSelection (Get-Option)
         }
     }
     elseif ($userSelection -eq "6") {
