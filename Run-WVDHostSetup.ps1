@@ -14,8 +14,8 @@ function Get-Option {
     Write-Host "2 - Download FSLogix"    
     Write-Host "3 - Install WVD Infra Agent and Boot Loader"
     Write-Host "4 - Uninstall WVD Infra Agent and Boot Loader"
-    Write-Host "6 - Join VM to Windows AD Domain"
-    Write-Host "5 - Exit"
+    Write-Host "5 - Join VM to Windows AD Domain"
+    Write-Host "6 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
     return ($o.ToString()).Trim()
 }
