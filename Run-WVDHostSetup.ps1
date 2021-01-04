@@ -115,8 +115,8 @@ function Invoke-Option {
                 $OUPath = Read-Host -Prompt "OUPath"
                 Write-Host "This process will join" $env:COMPUTERNAME "to the Windows AD Domain" $DomainName
                 Write-Host "The OUPath that will be used is" $OUPath
-                Write-host "Joining the computer to the domain will require a restart" -ForegroundColor Yellow -BackgroundColor Black
-                $userConfirm = Read-Host -Prompt 'Is the above information correct? (y/n)' -ForegroundColor Yellow -BackgroundColor Black
+                Write-host "Joining the computer to the domain will require a restart" -ForegroundColor Yellow 
+                $userConfirm = Read-Host -Prompt 'Is the above information correct? (y/n)'
                 if (($userConfirm.ToLower()).Trim() -eq "n") {
                     Write-Host "Canceling joining to the domain"
                     Invoke-Option -userSelection (Get-Option)
@@ -132,8 +132,8 @@ function Invoke-Option {
             }
             elseif (($OUyn.Trim()).ToLower() -eq "n") {
                 Write-Host "This process will join" $env:COMPUTERNAME "to the Windows AD Domain" $DomainName
-                Write-host "Joining the computer to the domain will require a restart" -ForegroundColor Yellow -BackgroundColor Black
-                $userConfirm = Read-Host -Prompt 'Is the above information correct? (y/n)' -ForegroundColor Yellow -BackgroundColor Black
+                Write-host "Joining the computer to the domain will require a restart" -ForegroundColor Yellow
+                $userConfirm = Read-Host -Prompt 'Is the above information correct? (y/n)'
                 if (($userConfirm.ToLower()).Trim() -eq "n") {
                     Write-Host "Canceling joining to the domain"
                     Invoke-Option -userSelection (Get-Option)
