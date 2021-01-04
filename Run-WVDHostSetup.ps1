@@ -169,7 +169,7 @@ function Invoke-Option {
 #endregion functions
 
 #region main
-Write-Host "Welcome to the WVD Setup Script"
+Write-Host "Welcome to the WVD Host Multitool Script"
 try {
     Invoke-Option -userSelection (Get-Option)
 }
