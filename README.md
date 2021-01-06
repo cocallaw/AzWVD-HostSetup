@@ -1,8 +1,12 @@
 # WVD Host Multitool Script
 
-To run this PowerShell Script on your WVD Host VM you can run the command below - 
+To run this PowerShell Script on your WVD Host VM run the command below - 
 
 `Invoke-Expression $(Invoke-WebRequest -uri aka.ms/wvdhostps -UseBasicParsing).Content`
+
+To download a local copy of the latest version of the script run the command below - 
+
+`Invoke-WebRequest -Uri aka.ms/wvdhostps -OutFile Run-WVDHostSetup.ps1`
 
 The WVD Host Multitool Script provides the ability to perform basic WVD Host configuration operation to simplify setup, testing and troubleshooting with WVD Host VMs. 
 
