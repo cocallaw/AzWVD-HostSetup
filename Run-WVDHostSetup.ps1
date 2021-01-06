@@ -5,6 +5,7 @@ $fslgxURI = "https://aka.ms/fslogix_download"
 $WVDSetupBootPath = "C:\WVDSetup\Boot"
 $WVDSetupInfraPath = "C:\WVDSetup\Infra"
 $WVDSetupFslgxPath = "C:\WVDSetup\fslogix"
+$FSLInstallerEXE = "$WVDSetupFslgxPath\x64\Release\FSLogixAppsSetup.exe"
 #endregion vatiables
 
 #region functions
@@ -14,22 +15,31 @@ function Get-Option {
     Write-Host "2 - Download FSLogix"    
     Write-Host "3 - Install WVD Infra Agent and Boot Loader"
     Write-Host "4 - Uninstall WVD Infra Agent and Boot Loader"
-    Write-Host "5 - Join VM to Windows AD Domain"
-    Write-Host "6 - Exit"
+    Write-Host "5 - Install FSLogix"
+    Write-Host "6 - Uninstall FSLogix"
+    Write-Host "7 - Join VM to Windows AD Domain"
+    Write-Host "7 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
     return ($o.ToString()).Trim()
 }
 function Get-WVDAgentsFromWeb {
     New-Item -Path $WVDSetupBootPath -ItemType Directory -Force
     New-Item -Path $WVDSetupInfraPath -ItemType Directory -Force
-
-    #Download WVD Agents From Internet 
     #Invoke-WebRequest -Uri $BootURI -OutFile "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi" -UseBasicParsing
     Start-BitsTransfer -Source $BootURI -Destination "$WVDSetupBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
     Write-Host "Downloaded RDAgentBootLoader to $WVDSetupBootPath"
     #Invoke-WebRequest -Uri $infraURI -OutFile "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi" -UseBasicParsing
     Start-BitsTransfer -Source $infraURI -Destination "$WVDSetupInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
     Write-Host "Downloaded RDInfra to $WVDSetupInfraPath"
+}
+function Get-FSLogixAgentFromWeb {
+    New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
+    #Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
+    Start-BitsTransfer -Source $fslgxURI -Destination "$WVDSetupFslgxPath\FSLogix_Apps.zip"
+    Write-Host "Downloaded FSLogix to $WVDSetupFslgxPath"
+    Write-Host "Expanding and cleaning up Fslogix.zip"
+    Expand-Archive "$WVDSetupFslgxPath\FSLogix_Apps.zip" -DestinationPath "$WVDSetupFslgxPath" -ErrorAction SilentlyContinue
+    Remove-Item "$WVDSetupFslgxPath\FSLogix_Apps.zip"
 }
 function Invoke-Option {
     param (
@@ -46,13 +56,7 @@ function Invoke-Option {
     }
     elseif ($userSelection -eq "2") {
         #2 - Download FSLogix
-        New-Item -Path $WVDSetupFslgxPath -ItemType Directory -Force
-        #Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDSetupFslgxPath\FSLogix_Apps.zip" -UseBasicParsing
-        Start-BitsTransfer -Source $fslgxURI -Destination "$WVDSetupFslgxPath\FSLogix_Apps.zip"
-        Write-Host "Downloaded FSLogix to $WVDSetupFslgxPath"
-        Write-Host "Expanding and cleaning up Fslogix.zip"
-        Expand-Archive "$WVDSetupFslgxPath\FSLogix_Apps.zip" -DestinationPath "$WVDSetupFslgxPath" -ErrorAction SilentlyContinue
-        Remove-Item "$WVDSetupFslgxPath\FSLogix_Apps.zip"
+        Get-FSLogixAgentFromWeb
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "3") {
@@ -71,8 +75,8 @@ function Invoke-Option {
         $wvdToken = Read-Host -Prompt 'Please provide the WVD registration key you would like to use'
         Write-host "Install will use registration  key starting with" $wvdToken.Substring(0, 5) "and ending with" $wvdToken.Substring($wvdToken.Length - 5)
 
-        $AgentBootServiceInstaller = (dir $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
-        $AgentInstaller = (dir $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
+        $AgentBootServiceInstaller = (Get-ChildItem $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
+        $AgentInstaller = (Get-ChildItem $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
         #WVD Boot Loader Install
         Write-Host "Starting install of $AgentBootServiceInstaller"
         $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive" -Wait -Passthru
@@ -105,7 +109,37 @@ function Invoke-Option {
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "5") {
-        #5 - Join VM to Windows AD Domain
+        #5 -Install FSLogix
+        Write-Host "Checking if FSLogix Agent is located at C:\WVDSetup\fslogix"
+        $tpFSL = Test-Path $FSLInstallerEXE
+        if (!$tpFSL) {
+            Write-Host "FSLogix Agent was not found" -ForegroundColor Yellow -BackgroundColor Black
+            Write-Host "Downloading most recent FSlogix Agent to C:\WVDSetup\fslogix"
+            Get-FSLogixAgentFromWeb
+        }
+        Write-Host "Installing FSLogix Agent on $env:COMPUTERNAME"
+        & $FSLInstallerEXE -install
+        Write-Host "FSLogix Installer Has Completed"
+
+        Invoke-Option -userSelection (Get-Option)
+    }
+    elseif ($userSelection -eq "6") {
+        #6 -Uninstall FSLogix
+        Write-Host "Checking if FSLogix Agent is located at C:\WVDSetup\fslogix in order to perform operations"
+        $tpFSL = Test-Path $FSLInstallerEXE
+        if (!$tpFSL) {
+            Write-Host "FSLogix Agent was not found" -ForegroundColor Yellow -BackgroundColor Black
+            Write-Host "Downloading most recent FSlogix Agent to C:\WVDSetup\fslogix"
+            Get-FSLogixAgentFromWeb
+        }
+        Write-Host "Uninstalling FSLogix Agent on $env:COMPUTERNAME"
+        & $FSLInstallerEXE -uninstall
+        Write-Host "FSLogix Uninstall Has Completed"
+
+        Invoke-Option -userSelection (Get-Option)
+    }
+    elseif ($userSelection -eq "7") {
+        #7 - Join VM to Windows AD Domain
         try {
             $DomainName = Read-Host -Prompt 'Windows AD Domain to Join'
             $Creds = Get-Credential -Message "Credentials To Join VM to $DomainName"
@@ -157,8 +191,8 @@ function Invoke-Option {
             Invoke-Option -userSelection (Get-Option)
         }
     }
-    elseif ($userSelection -eq "6") {
-        #6 -Exit
+    elseif ($userSelection -eq "8") {
+        #8 -Exit
         break
     }
     else {
