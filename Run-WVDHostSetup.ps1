@@ -18,7 +18,7 @@ function Get-Option {
     Write-Host "5 - Install FSLogix"
     Write-Host "6 - Uninstall FSLogix"
     Write-Host "7 - Join VM to Windows AD Domain"
-    Write-Host "7 - Exit"
+    Write-Host "8 - Exit"
     $o = Read-Host -Prompt 'Please type the number of the option you would like to perform '
     return ($o.ToString()).Trim()
 }
