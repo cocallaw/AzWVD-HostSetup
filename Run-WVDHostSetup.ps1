@@ -70,11 +70,9 @@ function Invoke-Option {
             Write-Host "Downloading most recent WVD Agents to C:\WVDSetup\"
             Get-WVDAgentsFromWeb
         }
-
         Write-Host "To perform the install a registration key from the WVD host pool is needed"
         $wvdToken = Read-Host -Prompt 'Please provide the WVD registration key you would like to use'
         Write-host "Install will use registration  key starting with" $wvdToken.Substring(0, 5) "and ending with" $wvdToken.Substring($wvdToken.Length - 5)
-
         $AgentBootServiceInstaller = (Get-ChildItem $WVDSetupBootPath\ -Filter *.msi | Select-Object).FullName
         $AgentInstaller = (Get-ChildItem $WVDSetupInfraPath\ -Filter *.msi | Select-Object).FullName
         #WVD Boot Loader Install
@@ -88,7 +86,6 @@ function Invoke-Option {
         $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken" -Wait -Passthru
         $sts = $agent_deploy_status.ExitCode
         Write-Host "Installation of WVD Infra Agent on VM Complete. Exit code=$sts"
-
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "4") {
@@ -105,7 +102,6 @@ function Invoke-Option {
             Write-Host "Uninstalling RDAgentBootLoader $app.Version"
             $app.Uninstall()
         }
-
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "5") {
@@ -120,7 +116,6 @@ function Invoke-Option {
         Write-Host "Installing FSLogix Agent on $env:COMPUTERNAME"
         & $FSLInstallerEXE -install
         Write-Host "FSLogix Installer Has Completed"
-
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "6") {
@@ -135,7 +130,6 @@ function Invoke-Option {
         Write-Host "Uninstalling FSLogix Agent on $env:COMPUTERNAME"
         & $FSLInstallerEXE -uninstall
         Write-Host "FSLogix Uninstall Has Completed"
-
         Invoke-Option -userSelection (Get-Option)
     }
     elseif ($userSelection -eq "7") {
