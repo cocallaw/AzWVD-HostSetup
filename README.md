@@ -8,17 +8,18 @@ The WVD Host Multitool Script provides the ability to perform basic WVD Host con
 
 ![PowerShell Screenshot](/images/wvdhostpsscreenshot01.png)
 
-### Currently the WVD Host Multitool provides the option to perform the following tasks as of January 4, 2020
+### Currently the WVD Host Multitool provides the option to perform the following tasks as of January 5, 2020
 
 - Download WVD Agents
 - Download FSLogix 
 - Install WVD Infra Agent and Boot Loader
 - Uninstall WVD Infra Agent and Boot Loader
+- Install FSLogix
+- Uninstall FSLogix
 - Join VM to Windows AD Domain
 
 ### Features in development and testing - 
 
-- Installation of FSLogix
 - Checking the values of FSLogix Registry Keys (Enable and VHDLocations)
 - Setting FSlogix Registry Keys (Enable and VHDLocations)
 
