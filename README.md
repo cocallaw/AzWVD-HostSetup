@@ -26,5 +26,7 @@ The WVD Host Multitool Script provides the ability to perform basic WVD Host con
 
 - Checking the values of FSLogix Registry Keys (Enable and VHDLocations)
 - Setting FSlogix Registry Keys (Enable and VHDLocations)
+- Download latest GPU drivers based on type (Intel or AMD)
+- Install latest GPU drivers on VM based on type (Intel or AMD)
 
 If you have an idea for a new feature or enhancements on an existing request feel free to open an [Issue](https://github.com/cocallaw/AzWVD-HostSetup/issues) or open a [Pull Request](https://github.com/cocallaw/AzWVD-HostSetup/pulls)
