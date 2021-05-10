@@ -8,7 +8,7 @@ To download a local copy of the latest version of the script run the command bel
 
 `Invoke-WebRequest -Uri aka.ms/wvdhostps -OutFile Run-WVDHostSetup.ps1`
 
-The WVD Host Multitool Script provides the ability to perform basic WVD Host configuration operation to simplify setup, testing and troubleshooting with WVD Host VMs. 
+The WVD Host Multitool Script provides the ability to perform basic WVD Host configuration operations to simplify setup, testing and troubleshooting with WVD Host VMs. 
 
 ![PowerShell Screenshot](/images/wvdhostpsscreenshot01.png)
 
