@@ -4,6 +4,10 @@ To run this PowerShell Script on your WVD Host VM run the command below -
 
 `Invoke-Expression $(Invoke-WebRequest -uri aka.ms/wvdhostps -UseBasicParsing).Content`
 
+or the shorthand version 
+
+`iwr -useb aka.ms/wvdhostps | iex`
+
 To download a local copy of the latest version of the script run the command below - 
 
 `Invoke-WebRequest -Uri aka.ms/wvdhostps -OutFile Run-WVDHostSetup.ps1`
